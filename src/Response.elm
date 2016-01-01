@@ -1,13 +1,13 @@
-module Vespa.Response (..) where
+module Response where
 
 {-|
-Response utilities in Elm Architecture. Build responses from tasks, pipe them, map over.
+Response utilities for Elm Architecture. Build responses from tasks, pipe them, map over.
 
 # Construct
 @docs Response, res, taskRes, withEffects, withTask, withNone
 
-# Map over
-@docs mapBoth, mapModel, mapEffects
+# Transform
+@docs mapModel, mapEffects, mapBoth
 -}
 
 import Effects exposing (Effects, Never)
@@ -18,7 +18,7 @@ import Task exposing (Task)
 type alias Response model action = (model, Effects action)
 
 
-{-| Construct a result from model and effects. -}
+{-| Canonical usage: construct a result from model and effects. -}
 res : m -> Effects a -> Response m a
 res model effects =
   (model, effects)
@@ -55,11 +55,6 @@ withNone : m -> Response m a
 withNone model =
   res model Effects.none
 
-{-| Map over model and effects. -}
-mapBoth : (m -> m') -> (a -> a') -> Response m a -> Response m' a'
-mapBoth onModel onEffects (m, fx) =
-  res (onModel m) (Effects.map onEffects fx)
-
 {-| Map over model. -}
 mapModel : (m -> m') -> Response m a -> Response m' a
 mapModel onModel =
@@ -70,3 +65,7 @@ mapEffects : (a -> a') -> Response m a -> Response m a'
 mapEffects onEffects =
   mapBoth identity onEffects
 
+{-| Map over model and effects. -}
+mapBoth : (m -> m') -> (a -> a') -> Response m a -> Response m' a'
+mapBoth onModel onEffects (m, fx) =
+  res (onModel m) (Effects.map onEffects fx)
