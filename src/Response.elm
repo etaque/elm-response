@@ -1,71 +1,71 @@
-module Response where
+module Response exposing (..)
 
 {-|
 Response utilities for Elm Architecture. Build responses from tasks, pipe them, map over.
 
 # Construct
-@docs Response, res, taskRes, withEffects, withTask, withNone
+@docs Response, res, taskRes, withCmd, withTask, withNone
 
 # Transform
-@docs mapModel, mapEffects, mapBoth
+@docs mapModel, mapCmd, mapBoth
 -}
 
-import Effects exposing (Effects, Never)
+-- import Platform exposing (Cmd, Never)
 import Task exposing (Task)
 
 
-{-| A response is an updated model and some effects. -}
-type alias Response model action = (model, Effects action)
+{-| A response is an updated model and some cmd. -}
+type alias Response model msg = (model, Cmd msg)
 
 
-{-| Canonical usage: construct a result from model and effects. -}
-res : m -> Effects a -> Response m a
-res model effects =
-  (model, effects)
+{-| Canonical usage: construct a result from model and cmd. -}
+res : model -> Cmd msg -> Response model msg
+res model cmd =
+  (model, cmd)
 
 {-| Construct a result from model and task. -}
-taskRes : m -> Task Never a -> Response m a
-taskRes model task =
-  res model (Effects.task task)
+taskRes : model -> (x -> msg) -> (a -> msg) -> Task x a -> Response model msg
+taskRes model mapError mapSuccess task =
+  res model (Task.perform mapError mapSuccess task)
 
-{-| Construct a result from model and effects, flipped for piping:
+{-| Construct a result from model and cmd, flipped for piping:
 
     { model | foo = bar }
-      |> withEffects someEffects
+      |> withCmd someCmd
  -}
-withEffects : Effects a -> m -> Response m a
-withEffects effects model =
-  res model effects
+withCmd : Cmd a -> m -> Response m a
+withCmd cmd model =
+  res model cmd
 
 {-| Construct a result from model and task, flipped for piping:
 
     { model | foo = bar }
       |> withTask someTask
  -}
-withTask : Task Never a -> m -> Response m a
-withTask task model =
-  taskRes model task
+withTask : (x -> msg) -> (a -> msg) -> Task x a -> model -> Response model msg
+withTask mapError mapSuccess task model =
+  taskRes model mapError mapSuccess task
 
-{-| Construct a result from model without effects, flipped for piping:
+{-| Construct a result from model without cmd, flipped for piping:
 
     { model | foo = bar }
       |> withNone
  -}
 withNone : m -> Response m a
 withNone model =
-  res model Effects.none
+  res model Cmd.none
 
 {-| Map over model. -}
 mapModel : (m -> m') -> Response m a -> Response m' a
 mapModel onModel =
   mapBoth onModel identity
 
-{-| Map over effects. -}
-mapEffects : (a -> a') -> Response m a -> Response m a'
-mapEffects onEffects =
-  mapBoth identity onEffects
+{-| Map over cmd. -}
+mapCmd : (a -> a') -> Response m a -> Response m a'
+mapCmd onCmd =
+  mapBoth identity onCmd
 
-{-| Map over model and effects. -}
+{-| Map over model and cmd. -}
 mapBoth : (m -> m') -> (a -> a') -> Response m a -> Response m' a'
-mapBoth onModel onEffects (m, fx) =
-  res (onModel m) (Effects.map onEffects fx)
+mapBoth onModel onCmd (m, fx) =
+  res (onModel m) (Cmd.map onCmd fx)
