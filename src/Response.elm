@@ -28,11 +28,11 @@ res model cmd =
     ( model, cmd )
 
 
-{-| Construct a result from model and task.
+{-| Construct a response from a model and task.
 -}
-taskRes : model -> (x -> msg) -> (a -> msg) -> Task x a -> Response model msg
-taskRes model mapError mapSuccess task =
-    res model (Task.perform mapError mapSuccess task)
+taskRes : model -> (Result x a -> msg) -> Task x a -> Response model msg
+taskRes model handleResponse task =
+    res model (Task.attempt handleResponse task)
 
 
 {-| Construct a result from model and cmd, flipped for piping:
@@ -50,9 +50,9 @@ withCmd cmd model =
     { model | foo = bar }
       |> withTask someTask
 -}
-withTask : (x -> msg) -> (a -> msg) -> Task x a -> model -> Response model msg
-withTask mapError mapSuccess task model =
-    taskRes model mapError mapSuccess task
+withTask : (Result x a -> msg) -> Task x a -> model -> Response model msg
+withTask handleResponse task model =
+    taskRes model handleResponse task
 
 
 {-| Construct a result from model without cmd, flipped for piping:
