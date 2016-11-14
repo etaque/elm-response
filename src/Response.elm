@@ -11,61 +11,76 @@ Response utilities for Elm Architecture. Build responses from tasks, pipe them, 
 -}
 
 -- import Platform exposing (Cmd, Never)
+
 import Task exposing (Task)
 
 
-{-| A response is an updated model and some cmd. -}
-type alias Response model msg = (model, Cmd msg)
+{-| A response is an updated model and some cmd.
+-}
+type alias Response model msg =
+    ( model, Cmd msg )
 
 
-{-| Canonical usage: construct a result from model and cmd. -}
+{-| Canonical usage: construct a result from model and cmd.
+-}
 res : model -> Cmd msg -> Response model msg
 res model cmd =
-  (model, cmd)
+    ( model, cmd )
 
-{-| Construct a result from model and task. -}
-taskRes : model -> (x -> msg) -> (a -> msg) -> Task x a -> Response model msg
-taskRes model mapError mapSuccess task =
-  res model (Task.perform mapError mapSuccess task)
+
+{-| Construct a response from a model and task.
+-}
+taskRes : model -> (Result x a -> msg) -> Task x a -> Response model msg
+taskRes model handleResponse task =
+    res model (Task.attempt handleResponse task)
+
 
 {-| Construct a result from model and cmd, flipped for piping:
 
     { model | foo = bar }
       |> withCmd someCmd
- -}
+-}
 withCmd : Cmd a -> m -> Response m a
 withCmd cmd model =
-  res model cmd
+    res model cmd
+
 
 {-| Construct a result from model and task, flipped for piping:
 
     { model | foo = bar }
       |> withTask someTask
- -}
-withTask : (x -> msg) -> (a -> msg) -> Task x a -> model -> Response model msg
-withTask mapError mapSuccess task model =
-  taskRes model mapError mapSuccess task
+-}
+withTask : (Result x a -> msg) -> Task x a -> model -> Response model msg
+withTask handleResponse task model =
+    taskRes model handleResponse task
+
 
 {-| Construct a result from model without cmd, flipped for piping:
 
     { model | foo = bar }
       |> withNone
- -}
+-}
 withNone : m -> Response m a
 withNone model =
-  res model Cmd.none
+    res model Cmd.none
 
-{-| Map over model. -}
-mapModel : (m -> m') -> Response m a -> Response m' a
+
+{-| Map over model.
+-}
+mapModel : (m -> n) -> Response m a -> Response n a
 mapModel onModel =
-  mapBoth onModel identity
+    mapBoth onModel identity
 
-{-| Map over cmd. -}
-mapCmd : (a -> a') -> Response m a -> Response m a'
+
+{-| Map over cmd.
+-}
+mapCmd : (a -> b) -> Response m a -> Response m b
 mapCmd onCmd =
-  mapBoth identity onCmd
+    mapBoth identity onCmd
 
-{-| Map over model and cmd. -}
-mapBoth : (m -> m') -> (a -> a') -> Response m a -> Response m' a'
-mapBoth onModel onCmd (m, fx) =
-  res (onModel m) (Cmd.map onCmd fx)
+
+{-| Map over model and cmd.
+-}
+mapBoth : (m -> n) -> (a -> b) -> Response m a -> Response n b
+mapBoth onModel onCmd ( m, fx ) =
+    res (onModel m) (Cmd.map onCmd fx)
