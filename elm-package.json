@@ -1,5 +1,5 @@
 {
-    "version": "2.0.0",
+    "version": "3.0.0",
     "summary": "Response utilities for Elm Architecture",
     "repository": "https://github.com/etaque/elm-response.git",
     "license": "BSD3",
