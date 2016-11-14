@@ -31,8 +31,8 @@ res model cmd =
 {-| Construct a response from a model and task.
 -}
 taskRes : model -> (Result x a -> msg) -> Task x a -> Response model msg
-taskRes model handleResponse task =
-    res model (Task.attempt handleResponse task)
+taskRes model handleResult task =
+    res model (Task.attempt handleResult task)
 
 
 {-| Construct a result from model and cmd, flipped for piping:
@@ -51,8 +51,8 @@ withCmd cmd model =
       |> withTask someTask
 -}
 withTask : (Result x a -> msg) -> Task x a -> model -> Response model msg
-withTask handleResponse task model =
-    taskRes model handleResponse task
+withTask handleResult task model =
+    taskRes model handleResult task
 
 
 {-| Construct a result from model without cmd, flipped for piping:
