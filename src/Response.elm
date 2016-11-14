@@ -67,20 +67,20 @@ withNone model =
 
 {-| Map over model.
 -}
-mapModel : (m -> m') -> Response m a -> Response m' a
+mapModel : (m -> n) -> Response m a -> Response n a
 mapModel onModel =
     mapBoth onModel identity
 
 
 {-| Map over cmd.
 -}
-mapCmd : (a -> a') -> Response m a -> Response m a'
+mapCmd : (a -> b) -> Response m a -> Response m b
 mapCmd onCmd =
     mapBoth identity onCmd
 
 
 {-| Map over model and cmd.
 -}
-mapBoth : (m -> m') -> (a -> a') -> Response m a -> Response m' a'
+mapBoth : (m -> n) -> (a -> b) -> Response m a -> Response n b
 mapBoth onModel onCmd ( m, fx ) =
     res (onModel m) (Cmd.map onCmd fx)
