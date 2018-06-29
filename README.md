@@ -14,8 +14,9 @@ type alias Response model action = ( model, Cmd action )
 This package offers alternate ways to construct and transform responses:
 
 * `res` and `taskRes` for inline constructs
-* `withCmd`, `withTask` and `withNone` for piped (`|>`) constructs
+* `withCmd`, `withCmds`, `withTask` and `withNone` for piped (`|>`) constructs
 * `mapModel`, `mapCmd` and `mapBoth` for transformations
+* `andThen` for sequencing multiple updates
 
 Typical usage examples in `update` function:
 
