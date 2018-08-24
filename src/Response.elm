@@ -1,13 +1,20 @@
-module Response exposing (..)
+module Response exposing
+    ( Response, res, taskRes, withCmd, withCmds, withTask, withNone, pure
+    , mapModel, mapCmd, mapBoth, andThen
+    )
 
-{-|
-Response utilities for Elm Architecture. Build responses from tasks, pipe them, map over.
+{-| Response utilities for Elm Architecture. Build responses from tasks, pipe them, map over.
+
 
 # Construct
+
 @docs Response, res, taskRes, withCmd, withCmds, withTask, withNone, pure
 
+
 # Transform
+
 @docs mapModel, mapCmd, mapBoth, andThen
+
 -}
 
 -- import Platform exposing (Cmd, Never)
@@ -38,7 +45,8 @@ taskRes model handleResult task =
 {-| Construct a result from model and cmd, flipped for piping:
 
     { model | foo = bar }
-      |> withCmd someCmd
+        |> withCmd someCmd
+
 -}
 withCmd : Cmd a -> m -> Response m a
 withCmd cmd model =
@@ -48,7 +56,8 @@ withCmd cmd model =
 {-| Construct a result from model and multiple cmds, flipped for piping:
 
     { model | foo = bar }
-      |> withCmds [someCmd1, someCmd1]
+        |> withCmds [ someCmd1, someCmd1 ]
+
 -}
 withCmds : List (Cmd a) -> m -> Response m a
 withCmds cmds model =
@@ -58,7 +67,8 @@ withCmds cmds model =
 {-| Construct a result from model and task, flipped for piping:
 
     { model | foo = bar }
-      |> withTask someTask
+        |> withTask someTask
+
 -}
 withTask : (Result x a -> msg) -> Task x a -> model -> Response model msg
 withTask handleResult task model =
@@ -68,7 +78,8 @@ withTask handleResult task model =
 {-| Construct a result from model without cmd, flipped for piping:
 
     { model | foo = bar }
-      |> withNone
+        |> withNone
+
 -}
 withNone : m -> Response m a
 withNone model =
@@ -105,6 +116,7 @@ mapBoth onModel onCmd ( m, fx ) =
     update1 model
     |> andThen update2
     |> andThen update3
+
 -}
 andThen : (m -> Response m a) -> Response m a -> Response m a
 andThen update ( model1, cmd1 ) =
@@ -115,12 +127,13 @@ andThen update ( model1, cmd1 ) =
         ( model2, cmd2 ) =
             update model1
     in
-        res model2 (Cmd.batch [ cmd1, cmd2 ])
+    res model2 (Cmd.batch [ cmd1, cmd2 ])
 
 
 {-| Synonym for withNone (for those with a personal preference).
 
     pure { model | foo = bar }
+
 -}
 pure : m -> Response m a
 pure =
